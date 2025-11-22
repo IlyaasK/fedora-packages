@@ -1,6 +1,6 @@
 Name:           standard-notes
 Version:        3.201.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Standard Notes end-to-end encrypted note-taking app
 License:        AGPLv3
 URL:            https://standardnotes.com
@@ -43,4 +43,4 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/standard-notes.deskto
 
 %changelog
 * Fri Nov 21 2025 Ilyaas Kapadia <ilyaaskapadia@tutanota.com> - 3.201.3-1
-- initial package
+- Fix dependency issues by disabling AutoReq
