@@ -8,7 +8,9 @@ Source0:        https://github.com/standardnotes/app/releases/download/@standard
 Source1:        https://github.com/standardnotes/app/releases/download/@standardnotes/desktop@%{version}/standard-notes-%{version}-linux-arm64.AppImage
 Source2:        https://raw.githubusercontent.com/IlyaasK/fedora-packages/main/specs/standard-notes/standard-notes.desktop
 Source3:        https://raw.githubusercontent.com/IlyaasK/fedora-packages/main/specs/standard-notes/standard-notes.png
+AutoReq:        no
 Requires:       fuse
+Requires:       zlib
 BuildRequires:  desktop-file-utils
 
 %description
