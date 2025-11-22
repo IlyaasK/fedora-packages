@@ -1,0 +1,38 @@
+name: Update Standard Notes
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: check current version
+        id: current
+        run: |
+          VERSION=$(grep "^Version:" specs/standard-notes/standard-notes.spec | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: check latest version
+        id: latest
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/standardnotes/app/releases/latest | jq -r '.tag_name' | sed 's/@standardnotes\/desktop@//')
+          echo "version=$LATEST" >> $GITHUB_OUTPUT
+      
+      - name: update spec if needed
+        if: steps.current.outputs.version != steps.latest.outputs.version
+        run: |
+          sed -i "s/^Version:.*/Version:        ${{ steps.latest.outputs.version }}/" specs/standard-notes/standard-notes.spec
+          
+      - name: commit and push
+        if: steps.current.outputs.version != steps.latest.outputs.version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add specs/standard-notes/standard-notes.spec
+          git commit -m "bump standard-notes to ${{ steps.latest.outputs.version }}"
+          git push
