@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Standard Notes
+Exec=standard-notes %U
+Icon=standard-notes
+Terminal=false
+Categories=Office;Utility;
+StartupNotify=true
+Comment=End-to-end encrypted note-taking app
