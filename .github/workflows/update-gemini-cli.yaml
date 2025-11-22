@@ -1,0 +1,27 @@
+name: update gemini-cli
+on:
+  schedule:
+    - cron: '0 0 * * *'  # daily check
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: check latest release
+        id: release
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/google-gemini/gemini-cli/releases | jq -r '.[] | select(.prerelease == false and (.tag_name | contains("nightly") | not) and (.tag_name | contains("preview") | not)) | .tag_name' | head -1 | sed 's/^v//')
+          echo "version=$LATEST" >> $GITHUB_OUTPUT
+          
+      - name: update spec
+        run: |
+          sed -i "s/^Version:.*/Version:        ${{ steps.release.outputs.version }}/" gemini-cli.spec
+          
+      - name: commit if changed
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git diff --quiet || (git add gemini-cli.spec && git commit -m "bump to ${{ steps.release.outputs.version }}" && git push)
