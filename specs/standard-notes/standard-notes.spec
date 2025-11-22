@@ -1,6 +1,6 @@
 Name:           standard-notes
 Version:        3.201.3
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Standard Notes end-to-end encrypted note-taking app
 License:        AGPLv3
 URL:            https://standardnotes.com
@@ -8,6 +8,20 @@ Source0:        https://github.com/standardnotes/app/releases/download/@standard
 Source1:        https://github.com/standardnotes/app/releases/download/@standardnotes/desktop@%{version}/standard-notes-%{version}-linux-arm64.AppImage
 Source2:        https://raw.githubusercontent.com/IlyaasK/fedora-packages/main/specs/standard-notes/standard-notes.desktop
 Source3:        https://raw.githubusercontent.com/IlyaasK/fedora-packages/main/specs/standard-notes/standard-notes.png
+
+# ---------------------------------------------------------------------
+# THE FIX: PREVENT RPM FROM CORRUPTING THE APPIMAGE
+# ---------------------------------------------------------------------
+# 1. Do not create a debuginfo package (AppImages don't have standard symbols)
+%global debug_package %{nil}
+
+# 2. Do not strip the binary. Stripping removes the AppImage payload!
+%global __strip /bin/true
+
+# 3. Do not run post-install checks (prevents repackaging errors)
+%global __os_install_post %{nil}
+# ---------------------------------------------------------------------
+
 AutoReq:        no
 Requires:       fuse
 Requires:       zlib
@@ -42,5 +56,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/standard-notes.deskto
 %{_datadir}/pixmaps/standard-notes.png
 
 %changelog
-* Fri Nov 21 2025 Ilyaas Kapadia <ilyaaskapadia@tutanota.com> - 3.201.3-1
+* Sat Nov 22 2025 Ilyaas Kapadia <ilyaaskapadia@tutanota.com> - 3.201.3-3
+- Fix: Disable stripping to prevent AppImage corruption
+
+* Sat Nov 22 2025 Ilyaas Kapadia <ilyaaskapadia@tutanota.com> - 3.201.3-2
 - Fix dependency issues by disabling AutoReq
