@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=TickTick
+Exec=ticktick %U
+Icon=ticktick
+Terminal=false
+Categories=Office;ProjectManagement;
+StartupNotify=true
+MimeType=x-scheme-handler/ticktick;

@@ -1,0 +1,43 @@
+name: Update TickTick
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # daily at noon utc
+  workflow_dispatch:  # manual trigger
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: check current version
+        id: current
+        run: |
+          VERSION=$(grep "^Version:" specs/ticktick/ticktick.spec | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: check latest version
+        id: latest
+        run: |
+          X64=$(curl -s https://download.ticktick.app/download/linux/linux_appimage_x64/ | grep -oP 'ticktick-\K[0-9.]+(?=-x86_64.AppImage)' | head -1)
+          ARM64=$(curl -s https://download.ticktick.app/download/linux/linux_appimage_arm64/ | grep -oP 'ticktick-\K[0-9.]+(?=-arm64.AppImage)' | head -1)
+          if [ "$X64" != "$ARM64" ]; then
+            echo "version mismatch: x64=$X64 arm64=$ARM64" >&2
+            exit 1
+          fi
+          echo "version=$X64" >> $GITHUB_OUTPUT
+      
+      - name: update spec if needed
+        if: steps.current.outputs.version != steps.latest.outputs.version
+        run: |
+          sed -i "s/^Version:.*/Version:        ${{ steps.latest.outputs.version }}/" specs/ticktick/ticktick.spec
+          
+      - name: commit and push
+        if: steps.current.outputs.version != steps.latest.outputs.version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add specs/ticktick/ticktick.spec
+          git commit -m "bump ticktick to ${{ steps.latest.outputs.version }}"
+          git push
