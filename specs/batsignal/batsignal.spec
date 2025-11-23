@@ -25,7 +25,7 @@ various battery states.
 %build
 # We must append $(pkg-config ...) so GCC knows where to find the headers
 make %{?_smp_mflags} \
-    CFLAGS="%{optflags} $(pkg-config --cflags libnotify)" \
+    CFLAGS="%{optflags} $(pkg-config --cflags libnotify)" -Wno-error=incompatible-pointer-types" \
     LDFLAGS="%{build_ldflags} $(pkg-config --libs libnotify)"
 
 %install
