@@ -11,24 +11,24 @@ BuildRequires:  gcc
 BuildRequires:  make
 BuildRequires:  libnotify-devel
 BuildRequires:  git-core
+BuildRequires:  pkgconfig
 
 Requires:       libnotify
 
 %description
 A lightweight battery daemon written in C that notifies the user about
-various battery states. It is intended for minimal window managers, but
-can be used in any environment that supports desktop notifications via
-libnotify.
+various battery states.
 
 %prep
 %autosetup
 
 %build
-# pass CFLAGS to ensure Fedora security hardening options are used
-make %{?_smp_mflags} CFLAGS="%{optflags}"
+# We must append $(pkg-config ...) so GCC knows where to find the headers
+make %{?_smp_mflags} \
+    CFLAGS="%{optflags} $(pkg-config --cflags libnotify)" \
+    LDFLAGS="%{build_ldflags} $(pkg-config --libs libnotify)"
 
 %install
-# The Makefile usually expects PREFIX to install to /usr/bin/
 %make_install PREFIX=%{_prefix}
 
 %files
@@ -40,3 +40,4 @@ make %{?_smp_mflags} CFLAGS="%{optflags}"
 %changelog
 * Sun Nov 23 2025 User <user@example.com> - 1.8.0-1
 - Initial package
+- Fixed build flags to include libnotify headers
