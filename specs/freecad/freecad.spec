@@ -9,6 +9,11 @@ URL:            https://www.freecad.org
 # The auto-update workflow should handle updating this URL.
 Source0:        https://github.com/FreeCAD/FreeCAD/releases/download/%{version}/FreeCAD_%{version}-conda-Linux-aarch64-py311.AppImage
 
+# Disable debug package and stripping as this is an AppImage
+%global _enable_debug_package 0
+%global debug_package %{nil}
+%global __os_install_post %{nil}
+
 ExclusiveArch:  aarch64
 
 BuildRequires:  desktop-file-utils
