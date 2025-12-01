@@ -1,6 +1,6 @@
 Name:           freecad
 Version:        1.0.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Feature-rich, open-source parametric 3D modeler
 
 License:        LGPLv2+
@@ -73,5 +73,8 @@ fi
 %{_datadir}/icons/hicolor/scalable/apps/freecad.svg
 
 %changelog
+* Sun Dec 01 2024 Ilyaas Kapadia <ilyaaskapadia@tutanota.com> - 1.0.2-2
+- Disable stripping to fix AppImage corruption
+
 * Sat Nov 30 2024 Ilyaas Kapadia <ilyaaskapadia@tutanota.com> - 1.0.2-1
 - Initial package for FreeCAD AppImage aarch64
