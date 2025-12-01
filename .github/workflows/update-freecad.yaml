@@ -1,0 +1,81 @@
+name: Update FreeCAD
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-freecad:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get latest FreeCAD release
+        id: get_release
+        run: |
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/FreeCAD/FreeCAD/releases/latest)
+          VERSION=$(echo "$LATEST_RELEASE" | jq -r .tag_name)
+          # Remove 'v' prefix if present (FreeCAD tags usually don't have v, but just in case)
+          VERSION=${VERSION#v}
+          
+          echo "Latest version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Find the aarch64 AppImage asset URL
+          ASSET_URL=$(echo "$LATEST_RELEASE" | jq -r '.assets[] | select(.name | test("FreeCAD_.*-conda-Linux-aarch64-py.*\\.AppImage")) | .browser_download_url' | head -n 1)
+          
+          if [ -z "$ASSET_URL" ]; then
+            echo "No aarch64 AppImage found for version $VERSION"
+            exit 1
+          fi
+          
+          echo "Asset URL: $ASSET_URL"
+          echo "asset_url=$ASSET_URL" >> $GITHUB_OUTPUT
+
+      - name: Update spec file
+        run: |
+          VERSION="${{ steps.get_release.outputs.version }}"
+          ASSET_URL="${{ steps.get_release.outputs.asset_url }}"
+          SPEC_FILE="specs/freecad/freecad.spec"
+          
+          CURRENT_VERSION=$(grep "Version:" $SPEC_FILE | awk '{print $2}')
+          
+          if [ "$VERSION" != "$CURRENT_VERSION" ]; then
+            echo "Updating FreeCAD from $CURRENT_VERSION to $VERSION"
+            
+            # Update Version
+            sed -i "s/Version:        .*/Version:        $VERSION/" $SPEC_FILE
+            
+            # Update Source0
+            # We need to escape slashes in the URL for sed
+            ESCAPED_URL=$(echo "$ASSET_URL" | sed 's/\//\\\//g')
+            sed -i "s/Source0:        .*/Source0:        $ESCAPED_URL/" $SPEC_FILE
+            
+            # Reset Release to 1
+            sed -i "s/Release:        .*/Release:        1%{?dist}/" $SPEC_FILE
+            
+            # Add changelog entry
+            DATE=$(date "+%a %b %d %Y")
+            USER_EMAIL="github-actions[bot]@users.noreply.github.com"
+            USER_NAME="github-actions[bot]"
+            NEW_CHANGELOG="* $DATE $USER_NAME <$USER_EMAIL> - $VERSION-1\n- Update to $VERSION"
+            
+            # Insert before the first changelog entry (assuming %changelog is present)
+            sed -i "/%changelog/a $NEW_CHANGELOG" $SPEC_FILE
+            
+            echo "updated=true" >> $GITHUB_ENV
+          else
+            echo "FreeCAD is already up to date ($VERSION)"
+            echo "updated=false" >> $GITHUB_ENV
+          fi
+
+      - name: Commit and Push
+        if: env.updated == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add specs/freecad/freecad.spec
+          git commit -m "Update FreeCAD to ${{ steps.get_release.outputs.version }}"
+          git push
