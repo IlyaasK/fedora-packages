@@ -68,5 +68,5 @@ fi
 %{_datadir}/icons/hicolor/scalable/apps/freecad.svg
 
 %changelog
-* Sun Nov 30 2024 Ilyaas Kalim <ilyaas@ilyaas.ca> - 1.0.2-1
+* Sat Nov 30 2024 Ilyaas Kapadia <ilyaaskapadia@tutanota.com> - 1.0.2-1
 - Initial package for FreeCAD AppImage aarch64
